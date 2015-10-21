@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html ng-app="crudApp">
+<head>
+  <title>sail.js and angular.js app</title>
+  <!--STYLES-->
+  <link rel="stylesheet" href="/styles/importer.css">
+  <!--STYLES END-->
+</head>
+
+<body>
+<div id="cruds" ng-controller="CrudCtrl">
+  <div ng-repeat="crud in cruds">
+    {{crud.name}} #{{crud.id}} <a ng-click="removeCrud($index)">delete</a>
+    <span ng-hide="editing" ng-click="editing = true">edit</span>
+
+    <div ng-show="editing">
+      <input type="text" ng-model="crud.name" placeholder="Name" ng-required/>
+      <button ng-click="editCrud($index); editing = false" ng-required>Save</button>
+    </div>
+
+  </div>
+  <div>
+    <input type="name" ng-model="newName"/>
+    <button ng-click="addCrud()" ng-required>Add</button>
+  </div>
+
+</div>
+
+<!--SCRIPTS-->
+<script src="/js/dependencies/sails.io.js"></script>
+<script src="/js/dependencies/external/angular.js"></script>
+<!--SCRIPTS END-->
+
+<script>
+  var crudApp = angular.module('crudApp', []);
+  crudApp.controller('CrudCtrl', function ($scope, $http) {
+    $scope.cruds = [];
+
+    $http.get("crud").success(function (data) {
+      $scope.cruds = data;
+    }).error(function () {
+      alert("not working");
+    })
+
+    $scope.addCrud = function () {
+      var data = {name: $scope.newName}
+      $http.post("crud/create", data).success(function (data, status, header) {
+        $scope.cruds.push(data);
+        $scope.newName = "";
+      })
+    };
+
+    $scope.removeCrud = function (index) {
+      $http.post("crud/destroy", $scope.cruds[index]).success(function (resp) {
+        $scope.cruds.splice(index, 1);
+      })
+    };
+
+    $scope.editCrud = function (index) {
+      $http.post("crud/update/"+$scope.cruds[index].id, $scope.cruds[index]).success(function (resp) {
+        //$scope.cruds.splice(index, 1);
+      })
+    }
+  });
+
+  function removeObjFromArray(array, obj) {
+    return array.filter(function (val) {
+      return val !== obj;
+    });
+
+  }
+  ;
+</script>
+</body>
+</html>
